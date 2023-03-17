@@ -7,7 +7,7 @@ app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
 const Note = require('./models/note')
-
+console.log('test')
 let notes = [
   {
     id: 1,
