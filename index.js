@@ -7,7 +7,7 @@ app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
 const Note = require('./models/note')
-console.log('test')
+
 let notes = [
   {
     id: 1,
@@ -40,33 +40,34 @@ app.get('/api/notes', (request, response) => {
   })
 })
 
-
 app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(note => note.id === id)
-  if(note) response.json(note);
-  response.status(404).send("no note has been found");
+  Note.findById(request.params.id).then(note => {
+    response.json(note)
+  })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
   const id = Number(request.params.id)
   notes = notes.filter(note => note.id !== id)
   response.status(204).end()
+
 })
 app.post('/api/notes', (request, response) => {
-  const maxId = notes.length > 0
-    ? Math.max(...notes.map(n => n.id)) 
-    : 0
+  const body = request.body
 
-  const note = request.body
-  note.id = maxId + 1
+  if (body.content === undefined) {
+    return response.status(400).json({ error: 'content missing' })
+  }
 
-  notes = notes.concat(note)
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+  })
 
-  response.json(note)
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
 })
-
-
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
